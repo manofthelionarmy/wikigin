@@ -57,6 +57,17 @@ func editHandler(c *gin.Context) {
 	renderTemplate(c, "edit", p)
 }
 
+func saveHandler(c *gin.Context) {
+	title := c.Param("saved")
+	body := c.Request.FormValue("body")
+
+	p := &Page{Title: title, Body: []byte(body)}
+
+	p.save()
+
+	c.Redirect(http.StatusFound, "/view/"+title)
+}
+
 func renderTemplate(c *gin.Context, tmpl string, p *Page) {
 
 	t, _ := template.ParseFiles(tmpl + ".html")
@@ -75,6 +86,6 @@ func main() {
 	router.GET("/view/:title", viewHandler) //side note, cannot have same wildcard names
 	router.GET("/edit/:page", editHandler)
 
-	//router.GET("/save/:saved", saveHandler)
+	router.POST("/save/:saved", saveHandler)
 	router.Run(":8080")
 }
