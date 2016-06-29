@@ -30,8 +30,8 @@ func loadPage(title string) (*Page, error) {
 }
 
 func handler(c *gin.Context) {
-	p := c.Request.URL.Path[len("/user/"):]
-	fmt.Fprintf(c.Writer, "Hi there, I love %s", p)
+	p := c.Param("title")
+	fmt.Fprintf(c.Writer, "<h1>Hi %s</h1>", p)
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +53,7 @@ func main() {
 
 	//http.HandleFunc("/view/", viewHandler)
 
-	router.GET("/user/", handler)
+	router.GET("/:title", handler)
 
 	//http.ListenAndServe(":8080", nil)
 	router.Run(":8080")
