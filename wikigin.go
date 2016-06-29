@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,7 +37,11 @@ func handler(c *gin.Context) {
 
 func viewHandler(c *gin.Context) {
 	title := c.Param("title")
-	p, _ := loadPage(title)
+	p, err := loadPage(title)
+
+	if err != nil {
+		c.Redirect(http.StatusFound, "/edit/"+title)
+	}
 
 	renderTemplate(c, "view", p)
 }
