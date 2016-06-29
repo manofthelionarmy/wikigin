@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"io/ioutil"
 
 	"github.com/gin-gonic/gin"
@@ -48,12 +49,8 @@ func editHandler(c *gin.Context) {
 		p = &Page{Title: title}
 	}
 
-	fmt.Fprintf(c.Writer, "<h1>Editing %s</h1>"+
-		"<form action=\"/save/%s\" method=\"Post\">"+
-		"<textarea name=\"body\">%s</textarea><br>"+
-		"<input type=\"submit\" value=\"Save\">"+
-		"</form>", p.Title, p.Body)
-
+	t, _ := template.ParseFiles("edit.html")
+	t.Execute(c.Writer, p)
 }
 
 func main() {
