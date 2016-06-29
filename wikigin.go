@@ -38,8 +38,7 @@ func viewHandler(c *gin.Context) {
 	title := c.Param("title")
 	p, _ := loadPage(title)
 
-	t, _ := template.ParseFiles("view.html")
-	t.Execute(c.Writer, p)
+	renderTemplate(c, "view", p)
 }
 
 func editHandler(c *gin.Context) {
@@ -50,7 +49,12 @@ func editHandler(c *gin.Context) {
 		p = &Page{Title: title}
 	}
 
-	t, _ := template.ParseFiles("edit.html")
+	renderTemplate(c, "edit", p)
+}
+
+func renderTemplate(c *gin.Context, tmpl string, p *Page) {
+
+	t, _ := template.ParseFiles(tmpl + ".html")
 	t.Execute(c.Writer, p)
 }
 
