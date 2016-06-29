@@ -38,7 +38,8 @@ func viewHandler(c *gin.Context) {
 	title := c.Param("title")
 	p, _ := loadPage(title)
 
-	fmt.Fprintf(c.Writer, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
+	t, _ := template.ParseFiles("view.html")
+	t.Execute(c.Writer, p)
 }
 
 func editHandler(c *gin.Context) {
@@ -64,6 +65,7 @@ func main() {
 	//http.ListenAndServe(":8080", nil)
 	router.GET("/view/:title", viewHandler) //side note, cannot have same wildcard names
 	router.GET("/edit/:page", editHandler)
+
 	//router.GET("/save/:saved", saveHandler)
 	router.Run(":8080")
 }
