@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -34,18 +33,28 @@ func handler(c *gin.Context) {
 	fmt.Fprintf(c.Writer, "<h1>Hi %s</h1>", p)
 }
 
-func viewHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/view/"):]
+func viewHandler(c *gin.Context) {
+	title := c.Param("title")
 	p, _ := loadPage(title)
 
-	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
+	fmt.Fprintf(c.Writer, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
 }
 
-/*func viewHandler(c *gin.Context) {
-	title := c.Request.URL.Path[len("/view/"):]
-	p, _ := loadPage(title)
-	fmt.Fprintf(c.Writer, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
-}*/
+func editHandler(c *gin.Context) {
+	title := c.Param("page")
+	p, err := loadPage(title)
+
+	if err != nil {
+		p = &Page{Title: title}
+	}
+
+	fmt.Fprintf(c.Writer, "<h1>Editing %s</h1>"+
+		"<form action=\"/save/%s\" method=\"Post\">"+
+		"<textarea name=\"body\">%s</textarea><br>"+
+		"<input type=\"submit\" value=\"Save\">"+
+		"</form>", p.Title, p.Body)
+
+}
 
 func main() {
 
@@ -53,8 +62,11 @@ func main() {
 
 	//http.HandleFunc("/view/", viewHandler)
 
-	router.GET("/:title", handler)
+	//router.GET("/:title", handler)
 
 	//http.ListenAndServe(":8080", nil)
+	router.GET("/view/:title", viewHandler) //side note, cannot have same wildcard names
+	router.GET("/edit/:page", editHandler)
+	//router.GET("/save/:saved", saveHandler)
 	router.Run(":8080")
 }
