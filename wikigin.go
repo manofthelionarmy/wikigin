@@ -63,15 +63,28 @@ func saveHandler(c *gin.Context) {
 
 	p := &Page{Title: title, Body: []byte(body)}
 
-	p.save()
-
+	err := p.save()
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	c.Redirect(http.StatusFound, "/view/"+title)
 }
 
 func renderTemplate(c *gin.Context, tmpl string, p *Page) {
 
-	t, _ := template.ParseFiles(tmpl + ".html")
-	t.Execute(c.Writer, p)
+	t, err := template.ParseFiles(tmpl + ".html")
+
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = t.Execute(c.Writer, p)
+
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func main() {
