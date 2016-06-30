@@ -65,7 +65,7 @@ func saveHandler(c *gin.Context) {
 
 	err := p.save()
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 	c.Redirect(http.StatusFound, "/view/"+title)
@@ -76,14 +76,14 @@ func renderTemplate(c *gin.Context, tmpl string, p *Page) {
 	t, err := template.ParseFiles(tmpl + ".html")
 
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	err = t.Execute(c.Writer, p)
 
 	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		c.AbortWithError(http.StatusInternalServerError, err)
 	}
 }
 
