@@ -55,7 +55,12 @@ func viewHandler(c *gin.Context) {
 }
 
 func editHandler(c *gin.Context) {
-	title := c.Param("page")
+	title, err := getTitle(c)
+
+	if err != nil {
+		return
+	}
+
 	p, err := loadPage(title)
 
 	if err != nil {
@@ -66,16 +71,23 @@ func editHandler(c *gin.Context) {
 }
 
 func saveHandler(c *gin.Context) {
-	title := c.Param("saved")
+	title, err := getTitle(c)
+
+	if err != nil {
+		return
+	}
+
 	body := c.Request.FormValue("body")
 
 	p := &Page{Title: title, Body: []byte(body)}
+	err = p.save()
 
-	err := p.save()
 	if err != nil {
+		//http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
+
 	c.Redirect(http.StatusFound, "/view/"+title)
 }
 
