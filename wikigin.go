@@ -41,11 +41,8 @@ func handler(c *gin.Context) {
 	fmt.Fprintf(c.Writer, "<h1>Hi %s</h1>", p)
 }
 
-func viewHandler(c *gin.Context) {
-	title, err := getTitle(c)
-	if err != nil {
-		return
-	}
+func viewHandler(c *gin.Context, title string) {
+
 	p, err := loadPage(title)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/edit/"+title)
@@ -54,12 +51,7 @@ func viewHandler(c *gin.Context) {
 	renderTemplate(c, "view", p)
 }
 
-func editHandler(c *gin.Context) {
-	title, err := getTitle(c)
-
-	if err != nil {
-		return
-	}
+func editHandler(c *gin.Context, title string) {
 
 	p, err := loadPage(title)
 
@@ -70,17 +62,12 @@ func editHandler(c *gin.Context) {
 	renderTemplate(c, "edit", p)
 }
 
-func saveHandler(c *gin.Context) {
-	title, err := getTitle(c)
-
-	if err != nil {
-		return
-	}
+func saveHandler(c *gin.Context, title string) {
 
 	body := c.Request.FormValue("body")
 
 	p := &Page{Title: title, Body: []byte(body)}
-	err = p.save()
+	err := p.save()
 
 	if err != nil {
 		//http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
@@ -103,13 +90,23 @@ func getTitle(c *gin.Context) (string, error) {
 	m := validPath.FindStringSubmatch(c.Request.URL.Path)
 
 	if m == nil {
-		//c.AbortWithError(http.StatusNotFound, errors.New("invalid page"))
-		http.NotFound(c.Writer, c.Request)
+		c.AbortWithError(http.StatusNotFound, errors.New("invalid page"))
+		//http.NotFound(c.Writer, c.Request)
 		return "", errors.New("Invalid Page Title")
 	}
 	return m[2], nil
 }
 
+func makeHandler(fn func(*gin.Context, string)) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		m := validPath.FindStringSubmatch(c.Request.URL.Path)
+		if m == nil {
+			c.AbortWithError(http.StatusNotFound, errors.New("Invalid Page"))
+			return
+		}
+		fn(c, m[2])
+	}
+}
 func main() {
 
 	router := gin.Default()
@@ -119,9 +116,9 @@ func main() {
 	//router.GET("/:title", handler)
 
 	//http.ListenAndServe(":8080", nil)
-	router.GET("/view/:title", viewHandler) //side note, cannot have same wildcard names
-	router.GET("/edit/:page", editHandler)
+	router.GET("/view/:title", makeHandler(viewHandler)) //side note, cannot have same wildcard names
+	router.GET("/edit/:page", makeHandler(editHandler))
 
-	router.POST("/save/:saved", saveHandler)
+	router.POST("/save/:saved", makeHandler(saveHandler))
 	router.Run(":8080")
 }
