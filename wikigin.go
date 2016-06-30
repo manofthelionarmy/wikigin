@@ -1,13 +1,19 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 
 	"github.com/gin-gonic/gin"
 )
+
+var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+
+var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 
 type Page struct {
 	Title string
@@ -36,13 +42,15 @@ func handler(c *gin.Context) {
 }
 
 func viewHandler(c *gin.Context) {
-	title := c.Param("title")
+	title, err := getTitle(c)
+	if err != nil {
+		return
+	}
 	p, err := loadPage(title)
-
 	if err != nil {
 		c.Redirect(http.StatusFound, "/edit/"+title)
+		return
 	}
-
 	renderTemplate(c, "view", p)
 }
 
@@ -73,18 +81,21 @@ func saveHandler(c *gin.Context) {
 
 func renderTemplate(c *gin.Context, tmpl string, p *Page) {
 
-	t, err := template.ParseFiles(tmpl + ".html")
-
-	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	err = t.Execute(c.Writer, p)
-
+	err := templates.ExecuteTemplate(c.Writer, tmpl+".html", p)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 	}
+}
+
+func getTitle(c *gin.Context) (string, error) {
+	m := validPath.FindStringSubmatch(c.Request.URL.Path)
+
+	if m == nil {
+		//c.AbortWithError(http.StatusNotFound, errors.New("invalid page"))
+		http.NotFound(c.Writer, c.Request)
+		return "", errors.New("Invalid Page Title")
+	}
+	return m[2], nil
 }
 
 func main() {
