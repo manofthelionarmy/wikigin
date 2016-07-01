@@ -1,3 +1,2 @@
-So, I made this git repository so I can trace my changes in this 
-lil mini project, cuz I had some code working and I can't get it
-to work the way I got it to work yesterday. 
+The purpose of this git repository is to keep track of the working foundation for my project. 
+It includes the Gin API and has basic handler functions for the basics of writing web applications. 
